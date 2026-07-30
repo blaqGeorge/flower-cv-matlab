@@ -1,0 +1,18 @@
+# Trained models — far over GitHub's 100 MB per-file limit
+*.mat
+
+# MATLAB autosave / build artefacts
+*.asv
+*.slxc
+slprj/
+codegen/
+
+# Datasets — downloaded separately, see README
+data/
+17flowers/
+daffodilSeg/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
