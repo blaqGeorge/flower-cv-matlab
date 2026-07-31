@@ -14,20 +14,36 @@ architectures with the MATLAB Deep Learning Toolbox.
 
 | Task | Architecture | Dataset | Metric | Result |
 |---|---|---|---|---|
-| Classification | 4-block CNN | Oxford 17 Flowers (17 classes, 1,360 images) | Validation accuracy | **64.3%** |
-| Segmentation | U-Net | DaffodilSeg | Validation pixel accuracy | **98.5%** |
+| Classification | 4-block CNN | Oxford 17 Flowers (17 classes, 1,360 images) | Validation accuracy | **73.2%** (95% CI 67.6–78.1, n = 272) |
+| | | | Macro-F1 | **0.735** |
+| | | | Top-3 accuracy | 0.879 |
+| Segmentation | U-Net | DaffodilSeg | **Mean IoU** | **0.976** (flower 0.963, background 0.989) |
+| | | | Boundary F1 | 0.930 |
+| | | | Pixel accuracy | 0.991 |
+
+Measured with the suite in `eval/`, which is itself verified by 38 checks against
+hand-computed values. Full method and per-class breakdowns in **[RESULTS.md](RESULTS.md)**.
 
 ### Reading those numbers honestly
 
-**The 98.5% is pixel accuracy, which flatters this problem.** Flower-versus-background is a
-heavily imbalanced two-class task — background dominates the frame, so a model that guessed
-"background" everywhere would still score highly. Mean IoU or Dice is the appropriate metric
-and is the correct next measurement to add.
+**Mean IoU, not pixel accuracy.** Flower-versus-background is imbalanced, so pixel accuracy
+flatters it: labelling every pixel "background" scores 0.766 here. Mean IoU gives each class
+equal weight, and the same trivial predictor reaches only 0.383. Reporting 0.976 against that
+0.383 ceiling is a claim the metric can actually support; 98.5% pixel accuracy was not.
 
-**64.3% on 17 classes is modest, and the cause is data.** 1,360 images across 17 categories is
-roughly 80 examples per class, which is thin for training a CNN from scratch. Augmentation
-(rotation, reflection, scaling) was added to compensate. Transfer learning from a pretrained
-backbone such as ResNet-50 would very likely reach 90%+ — the from-scratch constraint here was
+**The classification figure moved because a defect was found and fixed.** The original run
+reported 64.3%. Re-evaluating it revealed a 34-point gap between training and validation
+accuracy, traced to an `imageDataAugmenter` that `classification.m` constructs and then never
+attaches to the training datastore — so the augmentation described in the write-up never ran.
+Retraining with it applied (`src/classification_augmented.m`, seeded split) gives 73.2%, and
+halves the generalisation gap to 15.4 points. The improvement is significant at 95%
+(z = 2.24, p = 0.025).
+
+**What augmentation did not fix.** The surviving errors are colour confusions — Snowdrop with
+Lily Valley (both white), Daffodil with Cowslip (both yellow), Tulip with Cowslip. Rotation,
+reflection and scaling leave colour untouched, so this is the expected residue. Colour jitter,
+or transfer learning from a backbone with richer texture features, is the indicated next step;
+a fine-tuned ResNet-50 would very likely reach 90%+. The from-scratch constraint here was
 pedagogical, to build the architecture rather than adapt one.
 
 ## Classification model
@@ -42,6 +58,13 @@ pedagogical, to build the architecture rather than adapt one.
 - Labels derived from folder names via `imageDatastore`; 80/20 stratified split with `splitEachLabel`
 - Augmentation: ±30° rotation, random X reflection, 0.8–1.2 X/Y scaling
 
+`src/classification_augmented.m` is the corrected run. `classification.m` is kept unchanged as
+the original: it builds the augmenter on line 25 and then calls
+`trainNetwork(trainSet, ...)` with the plain datastore, so the augmentation is never applied.
+The corrected version differs in exactly two ways — `rng(seed)` before the split so the
+validation set is recorded and the result is reproducible, and the augmenter actually attached
+via `augmentedImageDatastore`. Everything else is identical, so the comparison is controlled.
+
 ## Segmentation model
 
 `src/segmentation.m`
@@ -55,6 +78,12 @@ pedagogical, to build the architecture rather than adapt one.
 daffodil). This implementation collapses the problem to two classes by selecting label IDs
 `[1, 3]`, so the remaining regions are not learned. Extending to the full five-class problem is
 listed below.
+
+Quantified: the discarded regions are **17.3% of all labelled pixels** (values 0, 2 and 4 at
+13.26%, 3.19% and 0.85%), and 11.3% of the validation set specifically. Undeclared values
+become `<undefined>`, which MATLAB excludes from both the training loss and the accuracy
+calculation — so every number above is computed over 83% of the annotation, not all of it.
+`eval/recon_dataset.m` audits this.
 
 ## Requirements
 
@@ -83,19 +112,36 @@ https://www.robots.ox.ac.uk/~vgg/data/flowers/17/
 
 ```matlab
 cd src
-classification    % trains and saves classnet.mat
-segmentation      % trains and saves segmentnet.mat
+classification              % original run — trains and saves classnet.mat
+classification_augmented    % corrected run — seeded split, augmentation applied
+segmentation                % trains and saves segmentnet.mat
 ```
 
 Trained `.mat` files are gitignored — each is over 100 MB, past GitHub's per-file limit.
 
+### Evaluation
+
+```matlab
+cd eval
+verify_metrics          % 38 checks on the metric code itself
+recon_dataset           % dataset inventory and label-value audit
+evaluate_coursework     % both trained models, full reports
+```
+
+`evaluate_coursework` reads dataset and model locations from `paths_local.m` — copy
+`paths_local.example.m` and edit it. That file is gitignored so machine-specific paths stay
+out of the repository.
+
 ## Next steps
 
-- [ ] Report mean IoU and Dice for segmentation instead of pixel accuracy
+- [x] Report mean IoU and Dice for segmentation instead of pixel accuracy
+- [x] Add a confusion matrix to identify which species are being confused
+- [x] Seed the train/validation split so results are reproducible
 - [ ] Extend segmentation to all five annotated classes
 - [ ] Compare the from-scratch CNN against a fine-tuned ResNet-50 baseline
-- [ ] Add a confusion matrix to identify which species are being confused
+- [ ] Add colour jitter to attack the confusions that survived augmentation
 - [ ] Hold out a genuine test set, separate from the validation split used for tuning
+- [ ] Calibrate the classifier — expected calibration error is currently 0.107
 
 ## Licence
 

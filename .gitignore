@@ -1,6 +1,9 @@
 # Trained models — far over GitHub's 100 MB per-file limit
 *.mat
 
+# Machine-specific dataset and model paths — copy eval/paths_local.example.m
+eval/paths_local.m
+
 # MATLAB autosave / build artefacts
 *.asv
 *.slxc

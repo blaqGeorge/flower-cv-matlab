@@ -1,0 +1,73 @@
+
+=== Retraining with augmentation ==========================
+  seed 42, started 31-Jul-2026 06:03:51
+  train 1088, validation 272
+Initializing input data normalization.
+|======================================================================================================================|
+|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Mini-batch  |  Validation  |  Base Learning  |
+|         |             |   (hh:mm:ss)   |   Accuracy   |   Accuracy   |     Loss     |     Loss     |      Rate       |
+|======================================================================================================================|
+|       1 |           1 |       00:00:29 |        3.91% |        5.88% |       4.5078 |      38.2827 |          0.0003 |
+|       4 |          30 |       00:07:59 |       18.75% |       22.43% |       2.6157 |       2.2991 |          0.0003 |
+|       8 |          60 |       00:15:03 |       20.31% |       33.82% |       2.3784 |       2.1203 |          0.0003 |
+|      12 |          90 |       00:22:09 |       28.91% |       41.18% |       2.0308 |       1.8701 |          0.0003 |
+|      15 |         120 |       00:31:44 |       37.50% |       47.06% |       1.8844 |       1.7288 |          0.0003 |
+|      19 |         150 |       00:42:19 |       40.62% |       54.78% |       1.8161 |       1.5517 |          0.0003 |
+|      23 |         180 |       00:52:15 |       34.38% |       52.57% |       1.9235 |       1.4368 |          0.0003 |
+|      27 |         210 |       01:07:49 |       46.88% |       59.56% |       1.5742 |       1.3124 |          0.0003 |
+|      30 |         240 |       01:15:00 |       45.31% |       60.66% |       1.6572 |       1.2225 |          0.0003 |
+|      34 |         270 |       01:25:30 |       45.31% |       62.50% |       1.5182 |       1.2290 |          0.0003 |
+|      38 |         300 |       01:36:13 |       49.22% |       65.81% |       1.4721 |       1.1623 |          0.0003 |
+|      42 |         330 |       01:47:15 |       55.47% |       68.01% |       1.3075 |       1.0895 |          0.0003 |
+|      45 |         360 |       01:56:02 |       53.12% |       68.01% |       1.4004 |       1.0720 |          0.0003 |
+|      49 |         390 |       02:04:37 |       49.22% |       69.85% |       1.4032 |       1.0936 |          0.0003 |
+|      53 |         420 |       02:13:01 |       54.69% |       65.44% |       1.3277 |       1.0913 |          0.0003 |
+|      57 |         450 |       02:20:17 |       46.88% |       69.12% |       1.3635 |       1.0367 |          0.0003 |
+|      60 |         480 |       02:33:53 |       57.03% |       70.96% |       1.1769 |       1.0127 |          0.0003 |
+|      64 |         510 |       02:47:43 |       60.16% |       71.32% |       1.1942 |       0.9562 |          0.0003 |
+|      68 |         540 |       02:56:32 |       55.47% |       70.96% |       1.1625 |       0.9424 |          0.0003 |
+|      72 |         570 |       03:06:02 |       59.38% |       70.96% |       1.1175 |       1.0116 |          0.0003 |
+|      75 |         600 |       03:15:00 |       56.25% |       69.85% |       1.1518 |       1.0088 |          0.0003 |
+|======================================================================================================================|
+Training finished: Max epochs completed.
+
+  trained in 196.3 min, saved classnet_aug.mat
+
+=== Held-out validation set (seeded, reproducible) =========
+
+=== Classification: 17 classes, 272 samples ==================
+  MACRO-F1 (headline)      0.7348
+  Accuracy                 0.7316   (95% CI 0.6760 - 0.7808)
+  Balanced accuracy        0.7316
+  Weighted F1              0.7348
+  Cohen's kappa            0.7148
+  Top-1 accuracy            0.7316
+  Top-2 accuracy            0.8382
+  Top-3 accuracy            0.8787
+  Expected calibration err 0.1066
+
+  Trivial baselines (what "no information" scores)
+    predict majority class   accuracy 0.0588   macro-F1 0.0065
+    predict at random        accuracy 0.0588   macro-F1 0.0588
+
+  Accuracy - macro-F1 gap  -0.0032
+
+  Weakest 5 classes
+    class          support precision  recall     F1  most confused with
+    Tulip               16     0.333   0.375  0.353  Cowslip (3)
+    Snowdrop            16     0.588   0.625  0.606  Lily Valley (3)
+    Cowslip             16     0.611   0.688  0.647  Tulip (2)
+    Lily Valley         16     0.611   0.688  0.647  Snowdrop (3)
+    Daffodil            16     0.571   0.750  0.649  Cowslip (2)
+
+=== Comparison against the original run ====================
+                                       original  augmented
+  training accuracy                       98.5%      88.6%
+  validation accuracy                     64.3%      73.2%
+  generalisation gap (points)             34.2       15.4
+  macro-F1                           not measured     0.735
+
+  Original training accuracy is inferred, not measured: the
+  original split was never seeded. See RESULTS.md.
+  finished 31-Jul-2026 09:20:37
+
