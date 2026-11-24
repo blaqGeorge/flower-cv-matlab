@@ -123,7 +123,7 @@ flowerNet = trainNetwork(augTrain, layers, options);
 
 ### 1b. Retrained with the fix — the finding is confirmed
 
-`retrain_classifier.m` re-runs the training with exactly two changes: the split
+`src/classification_augmented.m` re-runs the training with exactly two changes: the split
 is seeded (`rng(42)`), and the augmenter is attached to the training datastore.
 Architecture, optimiser, learning rate, epoch count and split ratio are identical
 to the original script.
